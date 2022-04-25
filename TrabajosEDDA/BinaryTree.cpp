@@ -1,12 +1,3 @@
-/*
-    Implementación de un ABB con arreglos
-    Armando Mora Valles a334270
-    Luis Javier Ortega Vazquez 338971
-    Cesar Osvaldo de la cruz Martínez 338855
-    Luis Raul Martinez Garcia
-    Viernes 18 de Febrero del 2022
-    18/02/2022
-*/
 #include <iostream>
 
 using namespace std;
@@ -19,7 +10,6 @@ struct node {
     node *right;
     node *left;
     node *father;
-    int FE;
 };
 
 node *tree = NULL;
@@ -34,9 +24,10 @@ void deleteElement(node *, int);
 void deleteNode(node *);
 node *minElement(node *, int);
 void replace(node*, node* );
-void calc(node*);
+void destroyNode(node*);
+int count = 0;
+int tope = 11;
 
-//FUNCION PRINCIPAL
 int main(){
     int opc, data;
 
@@ -53,7 +44,6 @@ int main(){
                 cin>>data;
                 insertNode(tree, data,NULL);
                 cout<<"NODO INSERTADO CON EXITO"<<endl;
-                calc(tree);
                 break;
             case 2:
                 cout<<"Ingrese el valor del nodo a BUSCAR"<<endl;
@@ -77,14 +67,15 @@ int main(){
     return 0;
 }
 
-//FUNCIONES
 void menu () {
     cout<<CYN"|--------------------------|"<<endl;
-    cout<<CYN"|"<<GRN"1.....Insertar elemento   "<<CYN" |"<<endl;
-    cout<<CYN"|"<<GRN"2.....Buscar elemento     "<<CYN" |"<<endl;
-    cout<<CYN"|"<<GRN"3.....Eliminar elemento   "<<CYN" |"<<endl;
-    cout<<CYN"|"<<GRN"6.....Mostrar arbol (para preuebas)"<<CYN"|"<<endl;
-    cout<<CYN"|"<<GRN"0.....Terminar el programa"<<CYN" |"<<endl;
+    cout<<CYN"|"<<GRN"1.....Insertar elemento   "<<CYN"|"<<endl;
+    cout<<CYN"|"<<GRN"2.....Buscar elemento     "<<CYN"|"<<endl;
+    cout<<CYN"|"<<GRN"3.....Eliminar elemento   "<<CYN"|"<<endl;
+    cout<<CYN"|"<<GRN"4.....Consultar minimo    "<<CYN"|"<<endl;
+    cout<<CYN"|"<<GRN"5.....Consultar maximo    "<<CYN"|"<<endl;
+    cout<<CYN"|"<<GRN"6.....Mostrar arbol       "<<CYN"|"<<endl;
+    cout<<CYN"|"<<GRN"0.....Terminar el programa"<<CYN"|"<<endl;
     cout<<CYN"|--------------------------|\n"<<endl;
 }
 
@@ -100,17 +91,28 @@ node *createNode(int n, node* father){
 }
 
 void insertNode(node *&tree, int n, node* father){
-    if(tree == NULL) {
-        node *new_node = createNode(n,father);
-        tree = new_node;
+    if (tree == NULL) {
+       node *new_node = createNode(n,father);
+       tree = new_node; 
+       count += 1;
+    }  else if (tree->left == NULL){
+        insertNode(tree->left, n, father);
+    } else if (tree->right == NULL) {
+        insertNode(tree->right, n, father);
+    } else if(tree->left != NULL && tree->right != NULL  && (tree->left->right == NULL || tree->left->left == NULL)) {
+        cout<<"DEBUG MESSAGE: INSERTANDO EN HIJO IZQUIERDO"<<endl;
+        insertNode(tree->left, n, father);
+    } else if(tree->left != NULL && tree->right != NULL && (tree->right->right == NULL || tree->right->left == NULL)){
+        cout<<"DEBUG MESSAGE: INSERTANDO EN HIJO DERECHO"<<endl;
+        insertNode(tree->right, n, father);
+    } else if(tree->left != NULL && count < 11){
+        insertNode(tree->left,n,father);
     } else {
-        int rootValue = tree->data;
-        if( n < rootValue){
-            insertNode(tree->left, n,tree);
-        } else {
-            insertNode(tree->right, n,tree);
-        }
+        insertNode(tree->right,n,father);
+
     }
+
+
 }
 
 void showTree(node *tree, int count) {
@@ -133,7 +135,7 @@ void searchNode(node *tree, int n){
     }
 
     if(tree->data == n){
-        cout<<"Elemento: "<<tree->data<<" ENCONTRADO!!"<<"Su factor de equilibrio es: "<<tree->FE<<endl;
+        cout<<"Elemento: "<<tree->data<<" ENCONTRADO!!"<<endl;
         return;
     } 
 
@@ -174,26 +176,21 @@ void replace(node* tree, node* newNode){
 void destroyNode(node* nodeToDestroy){
     nodeToDestroy->left = NULL;
     nodeToDestroy->right = NULL;
-    //nodeToDestroy->father = NULL;
 
     delete nodeToDestroy;
+
 }
 
 void deleteElement(node *tree, int n){
-    //ARBOL VACIO
-    if(tree == NULL){
-        cout<<"El arbol se encuentra vacio"<<endl;
+    if(tree == NULL) {
+        cout<<"El arbol se encuentra vacio"<<endl; 
         return;
     }
 
-    //ENCONTRAR EL VALOR DEL NODO
     if(n < tree->data) deleteElement(tree->left, n);
     if(n > tree->data) deleteElement(tree->right, n);
-
-    //EL ELEMENTO A SIDO ENCONTRADO
-    if(tree->data == n) {
-        deleteNode(tree);
-    }
+    if(tree->data == n) deleteNode(tree);
+    
 }
 
 // ELIMINA EL NODO ENCONTRADO
@@ -207,38 +204,13 @@ void deleteNode(node* nodeToDelete){
        replace(nodeToDelete,nodeToDelete->left);
        destroyNode(nodeToDelete);
 
-    }   else if(nodeToDelete->right){
+    } else if(nodeToDelete->right){
        replace(nodeToDelete,nodeToDelete->right);
        destroyNode(nodeToDelete);
 
-    }  else {
+    } else {
         replace(nodeToDelete, NULL);
         destroyNode(nodeToDelete);
     }
 
-}
-
-//USAR RECORRIDO INORDER PARA AGREGAR FACTOR DE EQUILIBRIO A CADA NODO
-void calc(node* tree){
-    if(tree == NULL){
-
-    } else {
-        calc(tree->left);
-        //Se evaluan todos los nodos
-        int count = 0;
-        while(tree->left != NULL){
-            tree = tree->left;
-            count++;
-        }
-
-        int count2 = 0;
-        while(tree->right != NULL){
-            tree = tree->right;
-            count2++;
-        }
-        int factoE = count-count2;
-        tree->FE = factoE;
-        //Se evaluan los nodos
-        calc(tree->right);
-    }
 }

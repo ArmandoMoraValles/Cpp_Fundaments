@@ -1,1 +1,1 @@
-
+alphabetSize
